@@ -1,0 +1,29 @@
+{
+  "name": "unetway/robokassa",
+  "description": "Пакет для работы с Робокассой",
+  "keywords": [
+    "robokassa",
+    "recurrent",
+    "payment"
+  ],
+  "homepage": "https://github.com/unetway/robokassa",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Cherepanov Ilya",
+      "email": "support@unetway.com"
+    }
+  ],
+  "require": {
+    "php": "^7.4",
+    "guzzlehttp/guzzle": "^6.3",
+    "ext-json": "*",
+    "ext-simplexml": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Unetway\\Robokassa\\": "src/"
+    }
+  }
+}
+
