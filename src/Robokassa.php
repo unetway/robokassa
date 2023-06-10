@@ -316,7 +316,7 @@ class Robokassa
         ];
 
         if (!empty($incCurrLabel)) {
-            $params['IncCurrLabel'] = $incCurrLabel,
+            $params['IncCurrLabel'] = $incCurrLabel;
         }
 
         $query = http_build_query($params);
