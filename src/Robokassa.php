@@ -9,6 +9,11 @@ class Robokassa
 {
 
     /**
+     * @var Client $client
+     */
+    private $client;
+
+    /**
      * @var string
      */
     private string $payment_url = 'https://auth.robokassa.ru/Merchant/Index.aspx';
@@ -77,6 +82,8 @@ class Robokassa
      */
     public function __construct($params)
     {
+        $this->client = new Client();
+
         if (empty($params)) {
             throw new Exception('Params is not defined');
         }
@@ -128,8 +135,8 @@ class Robokassa
      */
     public function generateLink($params): string
     {
-        if (empty($params['InvoiceId'])) {
-            throw new Exception('Param InvoiceId is not defined');
+        if (empty($params['InvoiceID'])) {
+            throw new Exception('Param InvoiceID is not defined');
         }
 
         if (empty($params['OutSum'])) {
@@ -144,15 +151,15 @@ class Robokassa
 
         $signatureParams = [
             'OutSum' => $params['OutSum'],
-            'InvoiceId' => $params['InvoiceId'],
+            'InvoiceID' => $params['InvoiceID'],
         ];
-
-        if (!empty($params['OutSumCurrency'])) {
-            $signatureParams['OutSumCurrency'] = $params['OutSumCurrency'];
-        }
 
         if (!empty($params['UserIp'])) {
             $signatureParams['UserIp'] = $params['UserIp'];
+        }
+
+        if (!empty($params['OutSumCurrency'])) {
+            $signatureParams['OutSumCurrency'] = $params['OutSumCurrency'];
         }
 
         if (!empty($params['Receipt'])) {
@@ -210,8 +217,7 @@ class Robokassa
 
         $url = $this->sms_url . '?' . $query;
 
-        $client = new Client();
-        $response = $client->get($url)->getBody();
+        $response = $this->client->get($url)->getBody();
 
         if ($response->getStatusCode() === 200) {
             $json = $response->getBody()->getContents();
@@ -450,8 +456,7 @@ class Robokassa
 
         $params = array_merge($paramsRequired, $paramsOther);
 
-        $client = new Client();
-        $response = $client->post($this->recurrent_url, [
+        $response = $this->client->post($this->recurrent_url, [
             'form_params' => $params
         ]);
 
@@ -566,8 +571,13 @@ class Robokassa
             $this->getLogin(),
             $params['OutSum'],
             $params['InvoiceID'],
-            $this->getPassword1(),
         ];
+
+        if (isset($params['UserIp'])) {
+            array_push($required, $params['UserIp']);
+        }
+
+        array_push($required, $this->getPassword1());
 
         $hash = $this->getHashFields($params, $required);
 
@@ -580,11 +590,11 @@ class Robokassa
      */
     private function getRequest($url): array
     {
-        $client = new Client();
-        $response = $client->get($url)->getBody();
+        $response = $this->client->get($url)->getBody();
 
         if ($response->getStatusCode() === 200) {
             $xml = $response->getBody()->getContents();
+
             return $this->getXmlInArray($xml);
         }
 
