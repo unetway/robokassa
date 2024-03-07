@@ -11,27 +11,27 @@ class Robokassa
     /**
      * @var Client $client
      */
-    private $client;
+    private Client $client;
 
     /**
      * @var string
      */
-    private string $payment_url = 'https://auth.robokassa.ru/Merchant/Index.aspx';
+    private string $paymentUrl = 'https://auth.robokassa.ru/Merchant/Index.aspx';
 
     /**
      * @var string
      */
-    private string $recurrent_url = 'https://auth.robokassa.ru/Merchant/Recurring';
+    private string $recurrentUrl = 'https://auth.robokassa.ru/Merchant/Recurring';
 
     /**
      * @var string
      */
-    private string $sms_url = 'https://services.robokassa.ru/SMS/';
+    private string $smsUrl = 'https://services.robokassa.ru/SMS/';
 
     /**
      * @var string
      */
-    private string $web_service_url = 'https://auth.robokassa.ru/Merchant/WebService/Service.asmx';
+    private string $webServiceUrl = 'https://auth.robokassa.ru/Merchant/WebService/Service.asmx';
 
     /**
      * @var bool
@@ -167,11 +167,11 @@ class Robokassa
             $signatureParams['Receipt'] = json_encode($params['Receipt']);
         }
 
-        if (!empty($params['IsTest']) && $params['IsTest'] === true) {
+        if (!empty($params['IsTest']) && $params['IsTest']) {
             $params['IsTest'] = '1';
         }
 
-        if (!empty($params['Recurring']) && $params['Recurring'] === true) {
+        if (!empty($params['Recurring']) && $params['Recurring']) {
             $params['Recurring'] = 'true';
         }
 
@@ -183,7 +183,7 @@ class Robokassa
 
         $params['SignatureValue'] = $this->generateSignature($signatureParams);
 
-        return $this->payment_url . '?' . http_build_query($params);
+        return $this->paymentUrl . '?' . http_build_query($params);
     }
 
     /**
@@ -191,7 +191,7 @@ class Robokassa
      *
      * @param $phone
      * @param $message
-     * @return array|mixed
+     * @return array
      * @throws Exception
      */
     public function sendSms($phone, $message): array
@@ -215,7 +215,7 @@ class Robokassa
             'signature' => $this->signatureSms($phone, $message),
         ]);
 
-        $url = $this->sms_url . '?' . $query;
+        $url = $this->smsUrl . '?' . $query;
 
         $response = $this->client->get($url)->getBody();
 
@@ -246,7 +246,7 @@ class Robokassa
      * также используется для отображения доступных вариантов оплаты непосредственно на Вашем сайте
      * если Вы желаете дать больше информации своим клиентам.
      * @param $lang
-     * @return array|mixed
+     * @return array
      * @throws Exception
      */
     public function getCurrencies($lang): array
@@ -270,7 +270,7 @@ class Robokassa
      *
      * Возвращает список способов оплаты, доступных для оплаты заказов указанного магазина/сайта.
      * @param $lang
-     * @return array|mixed
+     * @return array
      * @throws Exception
      */
     public function getPaymentMethods($lang): array
@@ -298,7 +298,7 @@ class Robokassa
      * @param $outSum
      * @param $language
      * @param null $incCurrLabel
-     * @return array|mixed
+     * @return array
      * @throws Exception
      */
     public function getRates($outSum, $language, $incCurrLabel = null): array
@@ -340,7 +340,7 @@ class Robokassa
      * Только для физических лиц.
      * @param $incSum
      * @param $incCurrLabel
-     * @return array|mixed
+     * @return array
      * @throws Exception
      */
     public function calcOutSumm($incSum, $incCurrLabel): array
@@ -372,7 +372,7 @@ class Robokassa
      * а позже – после подтверждения его платежных реквизитов,
      * т.е. Вы вполне можете не находить операцию, которая по Вашему мнению уже должна начаться.
      * @param $invoiceID
-     * @return array|mixed
+     * @return array
      * @throws Exception
      */
     public function opState($invoiceID): array
@@ -410,10 +410,10 @@ class Robokassa
      * @param $invoiceID
      * @param $previousInvoiceID
      * @param $paramsOther
-     * @return false|string
+     * @return bool
      * @throws Exception
      */
-    public function recurrent($outSum, $invoiceID, $previousInvoiceID, $paramsOther)
+    public function recurrent($outSum, $invoiceID, $previousInvoiceID, $paramsOther): bool
     {
         if (empty($outSum)) {
             throw new Exception('Param outSum is not defined');
@@ -456,16 +456,14 @@ class Robokassa
 
         $params = array_merge($paramsRequired, $paramsOther);
 
-        $response = $this->client->post($this->recurrent_url, [
+        $response = $this->client->post($this->recurrentUrl, [
             'form_params' => $params
         ]);
 
         if ($response->getStatusCode() === 200) {
             $res = $response->getBody()->getContents();
 
-            if ($res === 'OK' . $invoiceID) {
-                return $res;
-            }
+            return $res === 'OK' . $invoiceID;
         }
 
         return false;
@@ -586,7 +584,7 @@ class Robokassa
 
     /**
      * @param $url
-     * @return array|mixed
+     * @return array
      */
     private function getRequest($url): array
     {
@@ -603,12 +601,12 @@ class Robokassa
 
     /**
      * @param $response
-     * @return mixed
+     * @return array
      */
-    private function getXmlInArray($response)
+    private function getXmlInArray($response): array
     {
         $res = simplexml_load_string($response);
-        $res = json_decode(json_encode((array)$res, JSON_NUMERIC_CHECK), TRUE);
+        $res = json_decode(json_encode((array)$res, JSON_NUMERIC_CHECK), true);
 
         return $res;
     }
@@ -620,13 +618,13 @@ class Robokassa
      */
     private function getWebServiceUrl($segment, $query): string
     {
-        return $this->web_service_url . '/' . $segment . '?' . $query;
+        return $this->webServiceUrl . '/' . $segment . '?' . $query;
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    private function getLogin()
+    private function getLogin(): string
     {
         return $this->login;
     }
