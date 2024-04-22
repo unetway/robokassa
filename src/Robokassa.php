@@ -571,6 +571,10 @@ class Robokassa
             $params['InvoiceID'],
         ];
 
+        if (isset($params['OutSumCurrency'])) {
+            array_push($required, $params['OutSumCurrency']);
+        }
+
         if (isset($params['UserIp'])) {
             array_push($required, $params['UserIp']);
         }
