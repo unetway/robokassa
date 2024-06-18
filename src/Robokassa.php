@@ -135,7 +135,7 @@ class Robokassa
      */
     public function generateLink($params): string
     {
-        if (empty($params['InvoiceID'])) {
+        if (!isset($params['InvoiceID'])) {
             throw new Exception('Param InvoiceID is not defined');
         }
 
