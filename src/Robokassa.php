@@ -163,8 +163,8 @@ class Robokassa
         }
 
         if (!empty($params['Receipt'])) {
-            $params['Receipt'] = json_encode($params['Receipt']);
-            $signatureParams['Receipt'] = json_encode($params['Receipt']);
+            $params['Receipt'] = urlencode(json_encode($params['Receipt']));
+            $signatureParams['Receipt'] = $params['Receipt'];
         }
 
         if (!empty($params['IsTest']) && $params['IsTest']) {
@@ -577,6 +577,10 @@ class Robokassa
 
         if (isset($params['UserIp'])) {
             array_push($required, $params['UserIp']);
+        }
+
+        if (isset($params['Receipt'])) {
+            array_push($required, $params['Receipt']);
         }
 
         array_push($required, $this->getPassword1());
